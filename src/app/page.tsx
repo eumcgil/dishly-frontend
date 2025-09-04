@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import RecipeViewNew from '@/components/RecipeViewNew';
 import { Loader } from '@/components/Loader';
@@ -100,6 +100,14 @@ interface Recipe {
 }
 
 export default function RecipePage() {
+  return (
+    <Suspense fallback={<Loader />}>
+      <RecipePageContent />
+    </Suspense>
+  );
+}
+
+function RecipePageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
