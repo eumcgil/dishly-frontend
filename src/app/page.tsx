@@ -1,309 +1,225 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import InputForm from '@/components/InputForm';
-import { 
-  ChefHat, Sparkles, Clock, Globe, Zap, Shield, 
-  Star, Users, TrendingUp, Award, CheckCircle, ArrowRight,
-  Smartphone, Palette, FileText
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
+import RecipeViewNew from '@/components/RecipeViewNew';
+import { Loader } from '@/components/Loader';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { AlertCircle, Home, ChefHat } from 'lucide-react';
 import Link from 'next/link';
 
-export default function Home() {
-  const features = [
-    {
-      icon: Shield,
-      title: "Ad-Free Experience",
-      description: "No popups, no distractions. Just pure recipe content in a beautiful, clean interface.",
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/20"
+// Mock recipe data for development
+const mockRecipes: Record<string, Recipe> = {
+  'chocolate-chip-cookies': {
+    id: 'chocolate-chip-cookies',
+    title: 'Classic Chocolate Chip Cookies',
+    description: 'Soft, chewy chocolate chip cookies that are perfect every time. A family favorite recipe that never fails to deliver delicious results.',
+    servings: 24,
+    prepTime: '15 minutes',
+    cookTime: '12 minutes',
+    totalTime: '27 minutes',
+    ingredients: [
+      '2¼ cups all-purpose flour',
+      '1 teaspoon baking soda',
+      '1 teaspoon salt',
+      '1 cup (2 sticks) butter, softened',
+      '¾ cup granulated sugar',
+      '¾ cup packed brown sugar',
+      '2 large eggs',
+      '2 teaspoons vanilla extract',
+      '2 cups chocolate chips'
+    ],
+    instructions: [
+      'Preheat oven to 375°F (190°C). Line baking sheets with parchment paper.',
+      'In a medium bowl, whisk together flour, baking soda, and salt. Set aside.',
+      'In a large bowl, cream together the softened butter, granulated sugar, and brown sugar until light and fluffy, about 2-3 minutes.',
+      'Beat in eggs one at a time, then stir in the vanilla extract.',
+      'Gradually blend in the flour mixture until just combined. Don\'t overmix.',
+      'Stir in the chocolate chips until evenly distributed.',
+      'Drop rounded tablespoons of dough onto the prepared baking sheets, spacing them about 2 inches apart.',
+      'Bake for 9-11 minutes or until golden brown around the edges. Centers may look slightly underbaked.',
+      'Cool on baking sheet for 2 minutes, then remove to a wire rack to cool completely.'
+    ],
+    notes: 'For extra chewy cookies, slightly underbake them. Store in an airtight container for up to one week. Dough can be refrigerated for up to 3 days or frozen for up to 3 months.',
+    nutrition: {
+      calories: '185',
+      protein: '2g',
+      carbs: '26g',
+      fat: '8g'
     },
-    {
-      icon: Globe,
-      title: "500+ Supported Sites",
-      description: "Compatible with all major recipe websites. One click to transform any recipe.",
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
-      borderColor: "border-purple-500/20"
-    },
-    {
-      icon: Zap,
-      title: "Lightning Fast",
-      description: "Instant recipe parsing with smart AI. Get your recipes cleaned up in seconds.",
-      color: "text-yellow-500",
-      bgColor: "bg-yellow-500/10",
-      borderColor: "border-yellow-500/20"
-    },
-    {
-      icon: Smartphone,
-      title: "Mobile Optimized",
-      description: "Perfect for cooking with your phone or tablet. Responsive design that works everywhere.",
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
-      borderColor: "border-green-500/20"
-    },
-    {
-      icon: FileText,
-      title: "Print Ready",
-      description: "Beautiful print layouts that save paper and look professional in your recipe book.",
-      color: "text-red-500",
-      bgColor: "bg-red-500/10",
-      borderColor: "border-red-500/20"
-    },
-    {
-      icon: Palette,
-      title: "Customizable",
-      description: "Adjust serving sizes, check off ingredients, and track your cooking progress.",
-      color: "text-indigo-500",
-      bgColor: "bg-indigo-500/10",
-      borderColor: "border-indigo-500/20"
-    }
-  ];
+    sourceUrl: 'https://example.com/chocolate-chip-cookies',
+    sourceName: 'Example Recipe Site',
+    author: 'John Doe',
+    ratings: 4.5,
+    ratingsCount: 100,
+    cuisine: 'American',
+    category: 'Desserts',
+    keywords: ['cookies', 'chocolate chip', 'desserts'],
+    language: 'English',
+    dietaryRestrictions: ['vegetarian', 'contains gluten']
+  }
+};
 
-  const stats = [
-    { value: "10K+", label: "Happy Cooks" },
-    { value: "500+", label: "Supported Sites" },
-    { value: "4.9★", label: "User Rating" },
-    { value: "<2s", label: "Parse Time" }
-  ];
+interface Recipe {
+  id: string;
+  title: string;
+  description?: string;
+  servings?: number;
+  yields?: string;
+  cookTime?: string;
+  prepTime?: string;
+  totalTime?: string;
+  ingredients: string[];
+  instructions: string[];
+  notes?: string;
+  nutrition?: {
+    calories?: string;
+    protein?: string;
+    carbs?: string;
+    fat?: string;
+    sugar?: string;
+    sodium?: string;
+    fiber?: string;
+    cholesterol?: string;
+    saturatedFat?: string;
+  };
+  sourceUrl: string;
+  sourceName: string;
+  videoUrl?: string;
+  hasVideo?: boolean;
+  imageUrl?: string;
+  author?: string;
+  ratings?: number;
+  ratingsCount?: number;
+  cuisine?: string;
+  category?: string;
+  keywords?: string[];
+  language?: string;
+  dietaryRestrictions?: string[];
+}
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-muted/20">
-      {/* Decorative background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/5 rounded-full blur-3xl" />
+export default function RecipePage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const recipeId = params.id as string;
+  const sourceUrl = searchParams.get('url');
+
+  useEffect(() => {
+    const fetchRecipe = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch recipe from API route
+        const response = await fetch(`/api/recipe/${recipeId}`);
+        
+        if (response.ok) {
+          const backendData = await response.json();
+          // Map backend snake_case to frontend camelCase
+          const mappedRecipe: Recipe = {
+            id: backendData.id,
+            title: backendData.title,
+            description: backendData.description,
+            servings: backendData.servings,
+            yields: backendData.yields,
+            cookTime: backendData.cook_time,
+            prepTime: backendData.prep_time,
+            totalTime: backendData.total_time,
+            ingredients: backendData.ingredients || [],
+            instructions: backendData.instructions || [],
+            notes: backendData.notes,
+            nutrition: backendData.nutrition,
+            sourceUrl: backendData.source_url,
+            sourceName: backendData.source_name,
+            videoUrl: backendData.video_url,
+            hasVideo: backendData.has_video,
+            imageUrl: backendData.image_url,
+            author: backendData.author,
+            ratings: backendData.ratings,
+            ratingsCount: backendData.ratings_count,
+            cuisine: backendData.cuisine,
+            category: backendData.category,
+            keywords: backendData.keywords,
+            language: backendData.language,
+            dietaryRestrictions: backendData.dietary_restrictions
+          };
+          setRecipe(mappedRecipe);
+        } else {
+          // Fall back to mock data or create a sample recipe
+          if (mockRecipes[recipeId]) {
+            setRecipe(mockRecipes[recipeId]);
+          } else {
+            // Create a sample recipe based on the URL if provided
+            const sampleRecipe: Recipe = {
+              id: recipeId,
+              title: 'Sample Recipe',
+              description: 'This is a sample recipe to demonstrate the interface. In production, this would be parsed from the provided URL.',
+              servings: 4,
+              prepTime: '15 minutes',
+              cookTime: '30 minutes',
+              totalTime: '45 minutes',
+              ingredients: [
+                '2 cups sample ingredient',
+                '1 tablespoon another ingredient',
+                '1/2 cup third ingredient',
+                '1 teaspoon seasoning',
+                'Salt and pepper to taste'
+              ],
+              instructions: [
+                'Prepare all ingredients according to the recipe requirements.',
+                'Follow the cooking method as specified in the original recipe.',
+                'Cook until done, checking for doneness indicators.',
+                'Season to taste and serve immediately.',
+                'Enjoy your delicious meal!'
+              ],
+              notes: 'This is a placeholder recipe. The actual recipe would be parsed from the URL you provided.',
+              sourceUrl: sourceUrl || 'https://example.com',
+              sourceName: sourceUrl ? new URL(sourceUrl).hostname.replace('www.', '') : 'Recipe Site'
+            };
+            setRecipe(sampleRecipe);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching recipe:', err);
+        setError('Failed to load recipe. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRecipe();
+  }, [recipeId, sourceUrl]);
+
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  if (error || !recipe) {
+    return (
+      <div className="container mx-auto px-4 py-12 max-w-2xl text-center">
+        <Card>
+          <CardContent className="p-8">
+            <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h1 className="text-2xl font-semibold mb-2">Recipe Not Found</h1>
+            <p className="text-muted-foreground mb-6">
+              {error || "We couldn't find the recipe you're looking for."}
+            </p>
+            <Button asChild>
+              <Link href="/" className="inline-flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                Back to Home
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+    );
+  }
 
-      <div className="relative">
-        <div className="container mx-auto px-4 py-12 sm:py-20">
-          <div className="max-w-7xl mx-auto space-y-20">
-            {/* Hero Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-center space-y-8"
-            >
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20"
-              >
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-semibold text-primary">AI-Powered Recipe Parser</span>
-              </motion.div>
-
-              {/* Main Heading */}
-              <div className="space-y-4">
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-foreground leading-tight tracking-tight">
-                  Transform Any Recipe
-                  <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-500 to-orange-500">
-                    Into Pure Delight
-                  </span>
-                </h1>
-                <p className="text-xl sm:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  Extract recipes from any website. No ads, no stories, no clutter.
-                  <span className="block mt-2 font-semibold text-foreground">Just beautiful, clean recipes.</span>
-                </p>
-              </div>
-
-              {/* Trust Indicators */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="flex flex-wrap justify-center gap-6 text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-muted-foreground">No Sign-up Required</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-muted-foreground">100% Free Forever</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-muted-foreground">Works Instantly</span>
-                </div>
-              </motion.div>
-            </motion.div>
-
-            {/* Input Form with enhanced styling */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.6 }}
-            >
-              <InputForm />
-            </motion.div>
-
-            {/* Stats Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
-            >
-              {stats.map((stat, index) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.6 + index * 0.1 }}
-                  whileHover={{ y: -4 }}
-                  className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 text-center hover:shadow-lg transition-all duration-300"
-                >
-                  <div className="text-3xl font-extrabold text-primary mb-1">{stat.value}</div>
-                  <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Features Grid */}
-            <div className="space-y-12">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                className="text-center space-y-4"
-              >
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">
-                  Everything You Need for Perfect Recipes
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Powerful features designed to make your cooking experience delightful
-                </p>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              >
-                {features.map((feature, index) => {
-                  const Icon = feature.icon;
-                  return (
-                    <motion.div
-                      key={feature.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.9 + index * 0.1 }}
-                      whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                      className="group"
-                    >
-                      <Card className="h-full p-8 rounded-3xl border-border/50 hover:border-border hover:shadow-2xl transition-all duration-300 bg-card/50 backdrop-blur-sm">
-                        <div className={`w-14 h-14 ${feature.bgColor} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border ${feature.borderColor}`}>
-                          <Icon className={`w-7 h-7 ${feature.color}`} />
-                        </div>
-                        <h3 className="text-xl font-bold text-foreground mb-3">
-                          {feature.title}
-                        </h3>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </div>
-
-            {/* Testimonial Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-              className="relative"
-            >
-              <Card className="p-12 rounded-3xl bg-gradient-to-br from-primary/5 via-card to-secondary/5 border-border/50">
-                <div className="max-w-4xl mx-auto text-center space-y-6">
-                  <div className="flex justify-center mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-6 h-6 text-yellow-500 fill-yellow-500" />
-                    ))}
-                  </div>
-                  <blockquote className="text-2xl font-medium text-foreground leading-relaxed">
-                    "This app has completely changed how I save and organize recipes. No more scrolling through endless blog posts to find the actual recipe!"
-                  </blockquote>
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-bold">
-                      SC
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-foreground">Sarah Chen</p>
-                      <p className="text-sm text-muted-foreground">Home Chef & Food Blogger</p>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-
-            {/* CTA Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.6 }}
-              className="text-center space-y-8 py-12"
-            >
-              <div className="space-y-4">
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">
-                  Start Cooking Smarter Today
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                  Join thousands of home cooks who've simplified their recipe collection
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  className="rounded-2xl px-8 py-6 text-lg font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-300"
-                  onClick={() => document.querySelector('input')?.focus()}
-                >
-                  <ChefHat className="w-5 h-5 mr-2" />
-                  Try It Now - It's Free
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-2xl px-8 py-6 text-lg font-semibold"
-                  asChild
-                >
-                  <Link href="/recipe/chocolate-chip-cookies">
-                    View Sample Recipe
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-center gap-8 pt-8">
-                <div className="flex -space-x-3">
-                  {[...Array(4)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary border-2 border-background flex items-center justify-center text-white font-bold text-sm"
-                    >
-                      {String.fromCharCode(65 + i)}
-                    </div>
-                  ))}
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-semibold text-foreground">Loved by 10,000+ home cooks</p>
-                  <p className="text-xs text-muted-foreground">No credit card required</p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <RecipeViewNew recipe={recipe} />;
 }
