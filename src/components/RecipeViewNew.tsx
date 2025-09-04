@@ -100,7 +100,11 @@ const RecipeViewNew = memo(function RecipeViewNew({ recipe, isLoading = false }:
 
 
   const handleShare = useCallback(async () => {
-    const shareUrl = window.location.href;
+    // Use production domain in production, localhost in development
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://dishly.pro' 
+      : window.location.origin;
+    const shareUrl = `${baseUrl}${window.location.pathname}${window.location.search}`;
     const shareText = `Check out this recipe: ${recipe.title}`;
     
     if (navigator.share) {
