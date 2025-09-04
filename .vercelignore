@@ -1,0 +1,34 @@
+# Ignore test and development files
+**/*.test.*
+**/*.spec.*
+**/__tests__/**
+**/test/**
+
+# Ignore build output and cache
+.next/
+node_modules/
+
+# Ignore environment files (except .env.production)
+.env*.local
+!.env.production
+
+# Ignore debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Ignore OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Ignore backend files
+dishly-backend/
